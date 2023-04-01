@@ -138,7 +138,7 @@ python main.py --image True --image_path <path_to_image_file>
 
 Replace `<path_to_image_file>` with the path to your image file.
 
-<a  name="example"></a>
+<a  name="examples"></a>
 
 ## 3. Examples
 
