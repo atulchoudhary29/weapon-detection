@@ -1,13 +1,12 @@
 import cv2
 import numpy as np 
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--webcam', help="True/False", default=False)
-parser.add_argument('--play_video', help="Tue/False", default=False)
-parser.add_argument('--image', help="Tue/False", default=False)
+parser.add_argument('--play_video', help="True/False", default=False)
 parser.add_argument('--video_path', help="Path of video file", default="videos/fire1.mp4")
-parser.add_argument('--image_path', help="Path of image to detect objects", default="Images/bicycle.jpg")
 parser.add_argument('--verbose', help="To print statements", default=True)
 args = parser.parse_args()
 
@@ -65,7 +64,11 @@ def get_box_dimensions(outputs, height, width):
 				class_ids.append(class_id)
 	return boxes, confs, class_ids
 			
-def draw_labels(boxes, confs, colors, class_ids, classes, img): 
+def draw_labels(boxes, confs, colors, class_ids, classes, img, weapon_count):
+    # Create the crash_frames folder if it doesn't exist
+    if not os.path.exists("weapon_frames"):
+        os.makedirs("weapon_frames")
+    
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     font = cv2.FONT_HERSHEY_PLAIN
     for i in range(len(boxes)):
@@ -73,42 +76,38 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
             x, y, w, h = boxes[i]
             label = str(classes[class_ids[i]])
             color = colors[i % len(colors)]
-            cv2.rectangle(img, (x,y), (x+w, y+h), color, 5)
+            cv2.rectangle(img, (x, y), (x+w, y+h), color, 5)
             cv2.putText(img, label, (x, y - 5), font, 2, color, 2)
             if "Gun" in label or "Rifle" in label:
                 print("Weapon detected")
-    img=cv2.resize(img, (800,600))
-    cv2.imshow("Image", img)
+                weapon_count += 1
+                weapon_frame_path = f"weapon_frames/weapon_{weapon_count:04d}.png"
+                cv2.imwrite(weapon_frame_path, img)
+                print(f"Weapon frame saved to {weapon_frame_path}")
 
-def image_detect(img_path): 
-	model, classes, colors, output_layers = load_yolo()
-	image, height, width, channels = load_image(img_path)
-	blob, outputs = detect_objects(image, model, output_layers)
-	boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-	draw_labels(boxes, confs, colors, class_ids, classes, image)
-	while True:
-		key = cv2.waitKey(1)
-		if key == 27:
-			break
+    img = cv2.resize(img, (800, 600))
+    cv2.imshow("Image", img)
+    return weapon_count
 
 def webcam_detect():
-	model, classes, colors, output_layers = load_yolo()
-	cap = start_webcam()
-	while True:
-		_, frame = cap.read()
-		height, width, channels = frame.shape
-		blob, outputs = detect_objects(frame, model, output_layers)
-		boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-		draw_labels(boxes, confs, colors, class_ids, classes, frame)
-		key = cv2.waitKey(1)
-		if key == 27:
-			break
-	cap.release()
+    model, classes, colors, output_layers = load_yolo()
+    cap = start_webcam()
+    weapon_count = 0  # Initialize weapon_count outside the loop
+    while True:
+        _, frame = cap.read()
+        height, width, channels = frame.shape
+        blob, outputs = detect_objects(frame, model, output_layers)
+        boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+        weapon_count = draw_labels(boxes, confs, colors, class_ids, classes, frame, weapon_count)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+    cap.release()
 
 def start_video(video_path):
     model, classes, colors, output_layers = load_yolo()
     cap = cv2.VideoCapture(video_path)
-
+    weapon_count = 0  # Initialize weapon_count outside the loop
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -116,10 +115,10 @@ def start_video(video_path):
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-        draw_labels(boxes, confs, colors, class_ids, classes, frame)
+        weapon_count = draw_labels(boxes, confs, colors, class_ids, classes, frame, weapon_count)
 
         key = cv2.waitKey(1)
-        if cv2.waitKey(1) & 0xFF ==ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cap.release()
 
@@ -137,10 +136,6 @@ if __name__ == '__main__':
 		if args.verbose:
 			print('Opening '+video_path+" .... ")
 		start_video(video_path)
-	if image:
-		image_path = args.image_path
-		if args.verbose:
-			print("Opening "+image_path+" .... ")
-		image_detect(image_path)
+
 	
 	cv2.destroyAllWindows()
