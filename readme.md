@@ -3,7 +3,7 @@
 
   
 
-This repository provides a weapon detection solution using the YOLOv3 object detection model. The program detects weapons in real-time using a webcam, pre-recorded video, or an image, and alerts the user when a weapon is detected.
+This repository provides a weapon detection solution using the YOLOv3 object detection model. The program detects weapons in real-time using a webcam, pre-recorded video, and alerts the user when a weapon is detected.
 
   
 
@@ -64,19 +64,16 @@ The program can be run using either a webcam or a pre-recorded video file as inp
 ```
 
 usage: main.py [-h] [--webcam WEBCAM] [--play_video PLAY_VIDEO]
-                           [--image IMAGE] [--video_path VIDEO_PATH]
-                           [--image_path IMAGE_PATH] [--verbose VERBOSE]
+                           [--video_path VIDEO_PATH]
+                           [--verbose VERBOSE]
 
 optional arguments:
   -h, --help            show this help message and exit
   --webcam WEBCAM       True/False
   --play_video PLAY_VIDEO
                         True/False
-  --image IMAGE         True/False
   --video_path VIDEO_PATH
                         Path of video file
-  --image_path IMAGE_PATH
-                        Path of image to detect objects
   --verbose VERBOSE     To print statements
 
 
@@ -122,21 +119,6 @@ python main.py --play_video True --video_path <path_to_video_file>
 
 Replace `<path_to_video_file>` with the path to your video file.
 
-### Image Mode
-
-  
-
-To run the weapon detection program using an image file, use the following command:
-
-  
-
-```
-
-python main.py --image True --image_path <path_to_image_file>
-
-```
-
-Replace `<path_to_image_file>` with the path to your image file.
 
 <a  name="examples"></a>
 
