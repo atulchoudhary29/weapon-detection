@@ -135,13 +135,3 @@ Detect weapons in a video file named "security_footage.mp4":
 python main.py --play_video True --video_path security_footage.mp4
 
 ```
-
-Detect weapons in an image file named "image.jpg":
-
-  
-
-```
-
-python main.py --image True --image_path image.jpg
-
-```
